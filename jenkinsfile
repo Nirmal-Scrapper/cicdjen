@@ -1,0 +1,28 @@
+pipeline {
+    agent { label 'ec2' }
+    environment {
+        TEST_RESULTS = true
+    }
+    stages {
+        stage('setup') {
+            steps {
+                sh 'sudo aws ecr-public get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin public.ecr.aws/p3t0m4x7'
+                sh 'sudo docker pull public.ecr.aws/p3t0m4x7/dock_task_mysql:latest'
+                sh 'sudo docker tag  public.ecr.aws/p3t0m4x7/dock_task_mysql:latest mysq'
+                sh 'sudo docker pull 877969058937.dkr.ecr.us-east-1.amazonaws.com/nirmal_nod:latest'
+                sh 'sudo docker tag  877969058937.dkr.ecr.us-east-1.amazonaws.com/nirmal_nod:latest nod'
+            }
+        }
+        stage('deploy') {
+            steps {
+                script {
+                    print(TEST_RESULTS)
+                    if (TEST_RESULTS) {
+                        sh 'sudo sh deploy.sh'
+                    }
+                }
+            }
+        }
+
+    }
+}
